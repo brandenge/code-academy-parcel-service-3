@@ -1,12 +1,20 @@
 'use strict';
 
-const { io } = require('socket.io-client');
-const socket = io('http://localhost:3002/caps');
+const Message = require('../lib/message');
+const MessageClient = require('../lib/messageClient');
+const driver = new MessageClient('driver');
 
-const handlePickupMessage = require('./handlePickupMessage');
-const handlePickup = handlePickupMessage(socket);
-const handleDeliverMessage = require('./handleDeliverMessage');
-const handleDeliver = handleDeliverMessage(socket);
-
-socket.on('PICKUP', handlePickup);
-socket.on('IN-TRANSIT', handleDeliver);
+driver.subscribe('PICKUP', (message) => {
+  setTimeout(() => {
+    const inTransitMessage = `IN-TRANSIT NOTICE FROM DRIVER: Order ID: ${message.order.id} shipping from ${message.sender} to ${message.order.customer} has been picked up.`;
+    driver.publish('IN-TRANSIT', new Message(inTransitMessage, message.order, 'IN-TRANSIT', 'driver', message.sender));
+    console.log(inTransitMessage);
+  }, 3000);
+  setTimeout(() => {
+    const deliveredMessage = `DELIVERY NOTICE FROM DRIVER: Order ID: ${message.order.id} shipping from ${message.sender} to ${message.order.customer} has been delivered.`;
+    driver.publish('DELIVERED', new Message(deliveredMessage, message.order, 'DELIVERED', 'driver', message.sender));
+    console.log(deliveredMessage);
+  }, 6000);
+  driver.publish('RECEIVED', message);
+  console.log(`MESSAGE RECEIVED: ${message.text}`);
+});

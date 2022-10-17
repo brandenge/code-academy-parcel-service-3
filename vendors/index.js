@@ -1,10 +1,9 @@
 'use strict';
 
-const { io } = require('socket.io-client');
-const socket = io('http://localhost:3002/caps');
+const Vendor = require('./vendor');
 
-const handleReadyForPickup = require('./handleReadyForPickup');
-const readyForPickup = handleReadyForPickup(socket);
+const vendorNames = ['1-800-flowers', 'acme-widgets'];
 
-socket.on('DELIVERED', readyForPickup);
+const vendors = vendorNames.map(vendorName => new Vendor(vendorName));
 
+console.log('Vendors instantiated', vendors);
